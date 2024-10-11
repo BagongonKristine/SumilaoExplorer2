@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explore Sumilao</title>
+    <link rel="stylesheet" href="css/styles.css">
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+    <!-- Firebase App (the core Firebase SDK) -->
+<!-- Firebase App (the core Firebase SDK) -->
+<script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js';
+    import { getAnalytics, logEvent } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-analytics.js';
+    import { getFirestore, collection, addDoc, getDocs, query, where } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js';
+    import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-storage.js';
+
+    // Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyDfOI2shBJqKGaKAewR-X6XNoOzPYP1lpA",
+        authDomain: "capstone-project-49ca8.firebaseapp.com",
+        projectId: "capstone-project-49ca8",
+        storageBucket: "capstone-project-49ca8.appspot.com",
+        messagingSenderId: "132663616309",
+        appId: "1:132663616309:web:f7f440409eefa5ac94a27c",
+        measurementId: "G-ECQBJXEB2V"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
+
+    // Log an event on page load
+    logEvent(analytics, 'page_view', {
+        page_location: window.location.href,
+        page_title: document.title,
+    });
+
+    // Function to log interactions
+    async function logInteraction(action, data) {
+        await addDoc(collection(db, 'interactions'), {
+            action: action,
+            data: data,
+            timestamp: new Date()
+        });
+    }
+
+    // Submit review function
+    async function submitReview(title) {
+        console.log('Submit Review called for:', title); // Debugging line
+        const commentText = document.getElementById(`comment-text-${title.replace(/ /g, '-').toLowerCase()}`).value;
+        const commentImage = document.getElementById(`comment-image-${title.replace(/ /g, '-').toLowerCase()}`).files[0];
+        const rating = document.getElementById(`comment-rating-${title.replace(/ /g, '-').toLowerCase()}`).value;
+
+        // Upload image to Firebase Storage and get the download URL
+        let imageUrl = null;
+        if (commentImage) {
+            const storageRef = ref(storage, `reviews/${title}/${commentImage.name}`);
+            await uploadBytes(storageRef, commentImage).catch(error => {
+                console.error('Image upload failed:', error); // Error handling for image upload
+            });
+            imageUrl = await getDownloadURL(storageRef).catch(error => {
+                console.error('Failed to get download URL:', error); // Error handling for getting download URL
+            });
+        }
+
+        // Submit review function
+async function submitReview(title) {
+    console.log('Submit Review called for:', title); // Debugging line
+    const commentText = document.getElementById(`comment-text-${title.replace(/ /g, '-').toLowerCase()}`).value;
+    const commentImage = document.getElementById(`comment-image-${title.replace(/ /g, '-').toLowerCase()}`).files[0];
+    const rating = document.getElementById(`comment-rating-${title.replace(/ /g, '-').toLowerCase()}`).value;
+
+    // Upload image to Firebase Storage and get the download URL
+    let imageUrl = null;
+    if (commentImage) {
+        const storageRef = ref(storage, `reviews/${title}/${commentImage.name}`);
+        await uploadBytes(storageRef, commentImage).catch(error => {
+            console.error('Image upload failed:', error); // Error handling for image upload
+        });
+        imageUrl = await getDownloadURL(storageRef).catch(error => {
+            console.error('Failed to get download URL:', error); // Error handling for getting download URL
+        });
+    }
+
+    try {
+        // Store review in Firestore
+        await addDoc(collection(db, 'reviews'), {
+            title: title,
+            text: commentText,
+            image: imageUrl,
+            rating: parseInt(rating)
+        });
+        
+        console.log('Review submitted successfully'); // Success log
+        fetchReviews(title); // Fetch updated reviews
+        clearReviewForm(title); // Clear the form
+
+        // Log the review submission interaction
+        await logInteraction('submit_review', {
+            title: title,
+            text: commentText,
+            rating: parseInt(rating)
+        });
+
+    } catch (error) {
+        console.error('Error adding document:', error); // Error handling for Firestore
+    }
+}
+
+    }
+
+    // Fetch reviews from Firestore based on location/title
+    async function fetchReviews(title) {
+        const reviewsSection = document.getElementById(`comments-section-${title.replace(/ /g, '-').toLowerCase()}`);
+        reviewsSection.innerHTML = ''; // Clear existing reviews
+
+        const q = query(collection(db, 'reviews'), where("title", "==", title));
+        const querySnapshot = await getDocs(q);
+
+        querySnapshot.forEach((doc) => {
+            const reviewData = doc.data();
+            const reviewDisplay = document.createElement('div');
+            reviewDisplay.className = 'review-display';
+            reviewDisplay.innerHTML = `
+                <p><strong>Rating: ${renderStarRating(reviewData.rating)}</strong></p>
+                <p>${reviewData.text}</p>
+            `;
+
+            if (reviewData.image) {
+                reviewDisplay.innerHTML += `<img src="${reviewData.image}" alt="Review Image" style="max-width: 100px;">`;
+            }
+            reviewsSection.appendChild(reviewDisplay);
+        });
+    }
+
+    // Show review form
+    function showReviewForm(title) {
+        const reviewsSection = document.getElementById(`comments-section-${title.replace(/ /g, '-').toLowerCase()}`);
+        reviewsSection.innerHTML = `
+            <div class="review-form">
+                <h3>Add a Review</h3>
+                <textarea id="comment-text-${title.replace(/ /g, '-').toLowerCase()}" placeholder="Write your review here..."></textarea>
+                <input type="file" id="comment-image-${title.replace(/ /g, '-').toLowerCase()}" accept="image/*">
+                <div class="rating">
+                    <span>Rating: </span>
+                    <select id="comment-rating-${title.replace(/ /g, '-').toLowerCase()}">
+                        <option value="1">1 Star</option>
+                        <option value="2">2 Stars</option>
+                        <option value="3">3 Stars</option>
+                        <option value="4">4 Stars</option>
+                        <option value="5">5 Stars</option>
+                    </select>
+                </div>
+                <button class="submit-btn" onclick="submitReview('${title}')">Submit Review</button>
+            </div>
+        `;
+    }
+
+    // Function to render star rating as stars
+    function renderStarRating(rating) {
+        return '★'.repeat(rating) + '☆'.repeat(5 - rating);
+    }
+
+    // Clear the review form
+    function clearReviewForm(title) {
+        document.getElementById(`comment-text-${title.replace(/ /g, '-').toLowerCase()}`).value = '';
+        document.getElementById(`comment-image-${title.replace(/ /g, '-').toLowerCase()}`).value = '';
+        document.getElementById(`comment-rating-${title.replace(/ /g, '-').toLowerCase()}`).value = '1'; // Reset to 1 star
+    }
+</script>
+
+
+
+</script>
+    
+</head>
+<body>
+    <div class="search-container">
+      
+        <a href="index.html" class="back-btn">Go Back</a>
+        <input type="text" id="search-input" placeholder="Search for a destination..." />
+        <button id="search-btn">Search</button>
+        
+        <a href="developers.html" class="info-icon" title="Developer Profiles">
+            <img src="../assets/images/icon.png" alt="Info" style="width: 24px; height: 24px;">
+        </a>
+    </div>
+    
+    
+    
+
+    <div class="explore-page">
+        <!-- Information panel for selected destination -->
+        <div id="info-panel">
+            <h2>Sumilao Tourist Attractions</h2>
+            <p></p>
+
+            <div class="walu-container">
+                <img src="../assets/images/walu2.png" alt="Walu" id="walu">
+                <div class="speech-bubble">
+                    <p>Click for more info!</p>
+                    <span class="info">Sumilao is known for its agricultural heritage, beautiful landscapes, and vibrant community...</span>
+                </div>
+            </div>
+            
+        </div>
+      
+        <!-- Map container -->
+        <div id="map"></div>
+    </div>
+
+    <!-- Modal for more information -->
+    <div id="myModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div id="modal-text"></div>
+            <div class="carousel">
+                <button class="carousel-button left" onclick="moveCarousel(-1)">&#10094;</button>
+                <div class="carousel-images" id="carousel-images"></div>
+                <button class="carousel-button right" onclick="moveCarousel(1)">&#10095;</button>
+            </div>
+        </div>
+    </div>
+
+    
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+    <script>
+        // Initialize the map centered on Sumilao, Kisolon, Bukidnon
+        var map = L.map('map').setView([8.3167, 124.8961], 12); // Sumilao center
+
+        // Load and display OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        function updateInfoPanel(title, description, imageUrl, lat, lng) {
+    var infoPanel = document.getElementById('info-panel');
+    infoPanel.innerHTML = `
+        <h2>${title}</h2>
+        <img src="${imageUrl}" alt="${title}">
+        <p>${description}</p>
+        <a class="directions-btn" href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}" target="_blank">Get Directions</a>
+        <a class="more-info-btn" href="#" onclick="showMoreInfo('${title}')">More Info</a>
+        <button class="comment-btn" onclick="showCommentForm('${title}')">Add Comment</button>
+        <div id="comments-section-${title.replace(/ /g, '-').toLowerCase()}"></div>
+        <div id="average-rating-${title.replace(/ /g, '-').toLowerCase()}" class="average-rating">Average Rating: 0</div>
+    `;
+}
+
+
+
+// Show comment form
+function showCommentForm(title) {
+    var commentsSection = document.getElementById(`comments-section-${title.replace(/ /g, '-').toLowerCase()}`);
+    commentsSection.innerHTML = `
+        <div class="comment-form">
+            <h3>Add a Comment</h3>
+            <textarea id="comment-text-${title.replace(/ /g, '-').toLowerCase()}" placeholder="Write your comment here..."></textarea>
+            <input type="file" id="comment-image-${title.replace(/ /g, '-').toLowerCase()}" accept="image/*">
+            <div class="rating">
+                <span>Rating: </span>
+                <select id="comment-rating-${title.replace(/ /g, '-').toLowerCase()}">
+                    <option value="1">1 Star</option>
+                    <option value="2">2 Stars</option>
+                    <option value="3">3 Stars</option>
+                    <option value="4">4 Stars</option>
+                    <option value="5">5 Stars</option>
+                </select>
+            </div>
+            <button class="submit-btn" onclick="submitComment('${title}')">Submit Comment</button>
+        </div>
+    `;
+}
+
+// Submit comment function
+function submitComment(title) {
+    var commentText = document.getElementById(`comment-text-${title.replace(/ /g, '-').toLowerCase()}`).value;
+    var commentImage = document.getElementById(`comment-image-${title.replace(/ /g, '-').toLowerCase()}`).files[0];
+    var rating = document.getElementById(`comment-rating-${title.replace(/ /g, '-').toLowerCase()}`).value;
+
+    // Logic to handle comment submission (e.g., display it, send to server, etc.)
+    var commentsSection = document.getElementById(`comments-section-${title.replace(/ /g, '-').toLowerCase()}`);
+    
+    // Create a comment display
+    var commentDisplay = document.createElement('div');
+    commentDisplay.className = 'comment-display'; // Add a class for styling
+    commentDisplay.innerHTML = `
+        <p><strong>Rating: ${renderStarRating(rating)}</strong></p>
+        <p>${commentText}</p>
+    `;
+    
+    if (commentImage) {
+        var imageURL = URL.createObjectURL(commentImage);
+        commentDisplay.innerHTML += `<img src="${imageURL}" alt="Comment Image" style="max-width: 100px;">`;
+    }
+
+    
+    var deleteButton = document.createElement('button');
+    deleteButton.innerText = 'Delete';
+    deleteButton.className = 'delete-btn';
+    deleteButton.onclick = function() {
+        commentsSection.removeChild(commentDisplay);
+    };
+    
+    commentDisplay.appendChild(deleteButton);
+    commentsSection.appendChild(commentDisplay);
+    
+    // Clear the form
+    clearCommentForm(title);
+}
+
+// Function to render star rating as stars
+function renderStarRating(rating) {
+    return '★'.repeat(rating) + '☆'.repeat(5 - rating);
+}
+
+// Clear the comment form
+function clearCommentForm(title) {
+    document.getElementById(`comment-text-${title.replace(/ /g, '-').toLowerCase()}`).value = '';
+    document.getElementById(`comment-image-${title.replace(/ /g, '-').toLowerCase()}`).value = '';
+    document.getElementById(`comment-rating-${title.replace(/ /g, '-').toLowerCase()}`).value = '1'; // Reset to 1 star
+}// Submit comment function
+function submitComment(title) {
+    var commentText = document.getElementById(`comment-text-${title.replace(/ /g, '-').toLowerCase()}`).value;
+    var commentImage = document.getElementById(`comment-image-${title.replace(/ /g, '-').toLowerCase()}`).files[0];
+    var rating = document.getElementById(`comment-rating-${title.replace(/ /g, '-').toLowerCase()}`).value;
+
+    // Logic to handle comment submission (e.g., display it, send to server, etc.)
+    var commentsSection = document.getElementById(`comments-section-${title.replace(/ /g, '-').toLowerCase()}`);
+    
+    // Create a comment display
+    var commentDisplay = document.createElement('div');
+    commentDisplay.className = 'comment-display'; // Add a class for styling
+    commentDisplay.innerHTML = `
+        <p><strong>Rating: ${renderStarRating(rating)}</strong></p>
+        <p>${commentText}</p>
+    `;
+    
+    if (commentImage) {
+        var imageURL = URL.createObjectURL(commentImage);
+        commentDisplay.innerHTML += `<img src="${imageURL}" alt="Comment Image" style="max-width: 100px;">`;
+    }
+
+    var deleteButton = document.createElement('button');
+    deleteButton.innerText = 'Delete';
+    deleteButton.className = 'delete-btn';
+    deleteButton.onclick = function() {
+        commentsSection.removeChild(commentDisplay);
+        updateAverageRating(title); // Update the average rating after deletion
+    };
+    
+    commentDisplay.appendChild(deleteButton);
+    commentsSection.appendChild(commentDisplay);
+    
+    // Clear the form
+    clearCommentForm(title);
+
+    // Update the average rating after adding a new comment
+    updateAverageRating(title);
+}
+
+// Function to render star rating as stars
+function renderStarRating(rating) {
+    return '★'.repeat(rating) + '☆'.repeat(5 - rating);
+}
+
+// Clear the comment form
+function clearCommentForm(title) {
+    document.getElementById(`comment-text-${title.replace(/ /g, '-').toLowerCase()}`).value = '';
+    document.getElementById(`comment-image-${title.replace(/ /g, '-').toLowerCase()}`).value = '';
+    document.getElementById(`comment-rating-${title.replace(/ /g, '-').toLowerCase()}`).value = '1'; // Reset to 1 star
+}
+
+// Function to update average rating
+function updateAverageRating(title) {
+    var commentsSection = document.getElementById(`comments-section-${title.replace(/ /g, '-').toLowerCase()}`);
+    var ratings = Array.from(commentsSection.getElementsByClassName('comment-display'))
+        .map(comment => {
+            var ratingText = comment.querySelector('strong').innerText;
+            return ratingText ? ratingText.match(/Rating: (.*)/)[1].length : 0; // Extract rating
+        })
+        .filter(rating => rating > 0); // Filter out any non-rating comments
+    
+    var averageRating = ratings.length > 0 ? (ratings.reduce((sum, r) => sum + r, 0) / ratings.length).toFixed(1) : 0;
+
+    // Update the average rating display
+    var averageRatingDisplay = document.getElementById(`average-rating-${title.replace(/ /g, '-').toLowerCase()}`);
+    averageRatingDisplay.innerHTML = `Average Rating: ${renderStarRating(Math.round(averageRating))} (${averageRating})`;
+}
+function showMoreInfo(title) {
+    var modalText = document.getElementById("modal-text");
+
+    // Update modal content based on title
+    // Initialize the modal with the relevant information
+    if (title === "Alalum Falls") {
+        modalText.innerHTML = `
+            <h2>Alalum Falls</h2>
+            <p class="small-text">Along the main highway in the boundary of the municipalities of Impasug-ong and Sumilao is Alalum Falls, a towering cascade that was once an iconic tourist destination of Bukidnon Province, now in a state of neglect, ignored but never forgotten.
+            
+            Alalum Falls stands at a height of approximately 45 meters, a single layer cascade with a deep circular catch basin. Its cold water emanates from natural springs at the highland of Kitanglad Mountain Range that flows through a network of rivers and streams towards Tagoloan River before emptying to Macajalar Bay.
+            
+            The name Alalum is believed to be derived from the Lumad-Binukid word “madalum” which means deep. This could be our old folks reference to the deep catch basin of Alalum Falls. </p>
+        `;
+    } else if (title === "Mt. Palaopao") {
+        modalText.innerHTML = `
+            <h2>${title}</h2>
+            <p class="small-text">Mt. Palaopao, another Bukidnon’s rocky mountain visible in the highway of Kisolon, Sumilao proudly stands 836 feet above sea level. The top was once forested while the sides contain several caves and rockshelters which were used as burial grounds during the early 19th century. Now, the mountain is another traditional site for a religious pilgrimage during Holy Week. Its grandiose form catches the eyes of every passers-by. Its scenery draws an avid photographer and an ordinary hiker; its challenging rocky walls allure an experienced mountaineer. But a lot more await an adventurer and nature lover.</p>
+        `;
+    } else if (title === "Sumalsag Cave") {
+        modalText.innerHTML = `
+            <h2>Sumalsag Cave</h2>
+            <p class="small-text">It is located at Sitio Kilabong, Vista Villa, Sumilao and Sitio Diamante, Dalirig, Manolo Fortich
+            
+            Sumalsag Cave is counted as one of the 5 recognized caves in Palaopao Range in the municipalities of Manolo Fortich and Sumilao in Bukidnon. Sumalsag Cave stretches to 1.04km long. Its usual caving route starts from Sitio Kilabong, Vista Villa, Sumilao and exits to Sitio Diamante, Dalirig, Manolo Fortich.
+            
+            Water streams all along the 2-hour trail. The cave is so challenging. Narrow areas will make you walk like a duck and snake crawl. Other areas require rock climbing. Deep water will leave you no choice but to force yourself to swim.</p>
+        `;
+    } else if (title === "Basag Falls") {
+        modalText.innerHTML = `
+            <h2>Basag Falls</h2>
+            <p class="small-text">Basag Falls is a hidden gem nestled in the lush landscapes of Sumilao. Known for its serene beauty, the falls cascade gracefully into a crystal-clear pool, surrounded by vibrant greenery and towering trees. This natural wonder is an ideal spot for nature lovers and adventure seekers, offering a tranquil escape from the hustle and bustle of everyday life.</p>
+        `;
+    }
+
+    // Load carousel images
+    var carouselImages = document.getElementById("carousel-images");
+    if (title === "Alalum Falls") {
+        carouselImages.innerHTML = `
+            <img src="../assets/images/alalum1.jpg" class="carousel-image">
+            <img src="../assets/images/alalum2.jpg" class="carousel-image">
+            <img src="../assets/images/alalum3.jpg" class="carousel-image">
+            <img src="../assets/images/alalum4.jpg" class="carousel-image">
+        `;
+    } else if (title === "Mt. Palaopao") {
+        carouselImages.innerHTML = `
+            <img src="../assets/images/p1.jpg" class="carousel-image">
+            <img src="../assets/images/p2.jpg" class="carousel-image">
+            <img src="../assets/images/p3.jpg" class="carousel-image">
+            <img src="../assets/images/p4.jpg" class="carousel-image">
+        `;
+    } else if (title === "Sumalsag Cave") {
+        carouselImages.innerHTML = `
+            <img src="../assets/images/cave1.jpg" class="carousel-image">
+            <img src="../assets/images/cave.jpg" class="carousel-image">
+            <img src="../assets/images/cave3.jpg" class="carousel-image">
+            <img src="../assets/images/cave4.jpg" class="carousel-image">
+        `;
+    } else if (title === "Basag Falls") {
+        carouselImages.innerHTML = `
+            <img src="../assets/images/basag1.jpg" class="carousel-image">
+            <img src="../assets/images/basag2.jpg" class="carousel-image">
+            <img src="../assets/images/basag3.jpg" class="carousel-image">
+            <img src="../assets/images/basag4.jpg" class="carousel-image">
+        `;
+    }
+
+    // Reset carousel position and show the modal
+    carouselImages.style.transform = "translateX(0)";
+    document.getElementById("myModal").style.display = "block"; // Show the modal
+
+    // Carousel functionality
+    var currentSlide = 0;
+
+    // Function to move the carousel automatically
+    function autoMoveCarousel() {
+        var images = document.querySelectorAll('.carousel-image');
+        currentSlide++;
+
+        // Loop back to start
+        if (currentSlide >= images.length) currentSlide = 0;
+
+        // Move the carousel to show the next image
+        var offset = -currentSlide * 100; // Move based on current slide index
+        carouselImages.style.transform = `translateX(${offset}%)`;
+    }
+
+    // Set interval for automatic movement
+    setInterval(autoMoveCarousel, 3000); // Change slides every 3 seconds
+
+    // Close the modal when the user clicks on <span> (x)
+    document.querySelector(".close").onclick = function() {
+        document.getElementById("myModal").style.display = "none";
+    };
+}
+
+
+
+
+
+       // Add markers for Mt. Palaopao, Alalum Falls, and other locations
+
+var locations = [
+    {
+        title: "Mt. Palaopao",
+        position: [8.3313, 124.9594],
+        description: "A STUNNING VIEW OF MT. PALAOPAO NEAR KISOLON!",
+        imageUrl: "../assets/images/palaopao.jpg"
+    },
+    {
+        title: "Alalum Falls",
+        position: [8.32338, 124.97983],
+        description: "EXPERIENCE THE BREATHTAKING ALALUM FALLS!",
+        imageUrl: "../assets/images/alalum.jpg"
+    },
+    {
+        title: "Sumalsag Cave",
+        position: [8.35498, 124.91821], // Replace with actual coordinates
+        description: "THE HIDDEN GEM OF SUMALSAG CAVE.",
+        imageUrl: "../assets/images/cave2.jpg" // Ensure the image path is correct
+    },
+    {
+        title: "Basag Falls",
+        position: [8.3342, 124.9104], // Replace with actual coordinates
+        description: "THE HIDDEN GEM OG BASAG CAVE.",
+        imageUrl: "../assets/images/basag2.jpg" // Ensure the image path is correct
+    }
+];
+
+
+locations.forEach(function(location) {
+    var marker = L.marker(location.position).addTo(map);
+    
+    marker.on('click', function() {
+        // Center the map on the marker and zoom in
+        map.setView(location.position, 14); // 14 is the zoom level
+
+        // Update the info panel with the Get Directions and More Info buttons
+        updateInfoPanel(location.title, location.description, location.imageUrl, location.position[0], location.position[1]);
+    });
+});
+
+
+        // Search button functionality
+        document.getElementById('search-btn').addEventListener('click', function() {
+            var searchQuery = document.getElementById('search-input').value.toLowerCase();
+            
+            // Find matching location
+            var foundLocation = locations.find(location => location.title.toLowerCase().includes(searchQuery));
+
+            if (foundLocation) {
+                // Center the map on the found location and update the info panel
+                map.setView(foundLocation.position, 14);
+                updateInfoPanel(foundLocation.title, foundLocation.description, foundLocation.imageUrl, foundLocation.position[0], foundLocation.position[1]);
+            } else {
+                alert('Location not found');
+            }
+        });
+    </script>
+</body>
+</html>

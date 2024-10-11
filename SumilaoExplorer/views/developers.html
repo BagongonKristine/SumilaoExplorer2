@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Developer Profiles</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <a href="explore.html" class="back-btn" style="display: inline-block; margin: 20px; padding: 10px 15px; background-color: #048d0b; color: white; text-decoration: none; border-radius: 4px;">Go Back</a>
+
+    <div class="profile-container">
+        <h1>Developer Profiles</h1>
+
+        <div class="profile-grid">
+            <div class="profile">
+                <img src="../assets/images/shaira.jpg" alt="Developer 1" class="profile-image">
+                <div class="profile-info">
+                    <h2>SHAIRA VERONA</h2>
+                    <p>Brief bio or description about Developer 1.</p>
+                </div>
+            </div>
+
+            <div class="profile">
+                <img src="../assets/images/mae.jpg" alt="Developer 2" class="profile-image">
+                <div class="profile-info">
+                    <h2>MAEJEAN ROBLE</h2>
+                    <p>Brief bio or description about Developer 2.</p>
+                </div>
+            </div>
+
+            <div class="profile">
+                <img src="../assets/images/tine.jpg" alt="Developer 3" class="profile-image">
+                <div class="profile-info">
+                    <h2>KRISTINE LIGAYA BAGONGON</h2>
+                    <p>Brief bio or description about Developer 3.</p>
+                </div>
+            </div>
+
+            <div class="profile">
+                <img src="../assets/images/kurt.jpg" alt="Developer 4" class="profile-image">
+                <div class="profile-info">
+                    <h2>KURT ANTHONY SITOY</h2>
+                    <p>Brief bio or description about Developer 4.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2024 Developer Profiles. All rights reserved.</p>
+    </footer>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #aef59d;
+            margin: 20px;
+        }
+
+        .profile-container {
+            max-width: 1200px; /* Adjusted width for larger screen */
+            margin: auto;
+            background: #5aca3e;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .profile-grid {
+            display: flex;
+            flex-wrap: wrap; /* Allows items to wrap into the next row */
+            justify-content: space-between; /* Space between items */
+        }
+
+        .profile {
+            width: calc(50% - 20px); /* Two profiles per row with spacing */
+            display: flex; /* Use flexbox to align items side by side */
+            align-items: center; /* Center items vertically */
+            margin-bottom: 20px;
+        }
+
+        .profile-info {
+            flex: 1; /* Allow the info section to take up available space */
+            margin-left: 20px; /* Space between image and text */
+        }
+
+        .profile-image {
+            width: 150px; /* Set a fixed width for images */
+            height: auto;
+            border-radius: 50%; /* Makes the images circular */
+        }
+
+        footer {
+            text-align: center;
+            padding: 10px;
+            background-color: #048d0b;
+            color: white;
+            position: relative;
+            bottom: 0;
+            width: 100%;
+            margin-top: 20px;
+        }
+    </style>
+</body>
+</html>

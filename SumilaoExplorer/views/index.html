@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Landing Page</title>
+    <link rel="stylesheet" href="css/styles.css">
+    
+
+
+    <!-- Firebase App (the core Firebase SDK) -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js';
+        import { getAnalytics } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-analytics.js';
+        import { getFirestore, collection, addDoc } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js';
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDfOI2shBJqKGaKAewR-X6XNoOzPYP1lpA",
+            authDomain: "capstone-project-49ca8.firebaseapp.com",
+            projectId: "capstone-project-49ca8",
+            storageBucket: "capstone-project-49ca8.appspot.com",
+            messagingSenderId: "132663616309",
+            appId: "1:132663616309:web:f7f440409eefa5ac94a27c",
+            measurementId: "G-ECQBJXEB2V"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const db = getFirestore(app);
+
+        // Log an event
+        window.logEvent = (eventName, params) => {
+            analytics.logEvent(eventName, params);
+        };
+
+        // Add data to Firestore
+        window.addDataToFirestore = async (collectionName, data) => {
+            try {
+                const docRef = await addDoc(collection(db, collectionName), data);
+                console.log("Document successfully written with ID: ", docRef.id);
+            } catch (error) {
+                console.error("Error writing document: ", error);
+            }
+        };
+
+        // Log Walu clicks to Firestore
+        window.logWaluClick = async () => {
+            const speechBubble = document.getElementById("walu-bubble").innerText; // Get Walu's speech
+            const clickData = {
+                character: "Walu",
+                timestamp: new Date(),
+                message: speechBubble // Use the speech from the speech bubble
+            };
+            await addDataToFirestore("walu_clicks", clickData);
+            console.log("Walu click event recorded with message:", speechBubble);
+        };
+
+        // Example of defining SumilaoExplorer
+        window.SumilaoExplorer = function() {
+            // Your SumilaoExplorer logic
+            console.log('Welcome to Sumilao Explorer!');
+        };
+    </script>
+</head>
+
+<body>
+    <div class="landing-page">
+        <h1>Welcome to Sumilao Explorer</h1>
+        <p>Discover the wonders of Sumilao, Bukidnon</p>
+
+        <!-- Explore Button -->
+        <a href="explore.html" class="explore-btn" onclick="logEvent('explore_button_clicked'); SumilaoExplorer();">Explore</a>
+
+        <!-- Registration Button -->
+        <a href="registration.html" class="register-btn">Register for a Visit</a>
+
+        <!-- Walu interactive character -->
+        <img src="../assets/images/walu2.png" alt="Walu" id="walu" class="interactive-walu" onclick="logWaluClick();">
+
+        <!-- Speech bubble for Walu -->
+        <div class="speech-bubble" id="walu-bubble">a
+            Hi, I'm Walu! Let's explore Sumilao together!
+        </div>
+    </div>
+
+    <!-- External JavaScript for Walu's interaction -->
+    <script src="../walu/walu.js"></script>
+</body>
+
+<script src="../background-music/backgroundmusic.js" defer></script> <!-- Load background music script -->
+
+    <script>
+        // Create audio element
+        const audio = document.createElement('audio');
+        audio.src = '../assets/best-adventure-ever-122726.mp3'; // Ensure the path is correct
+        audio.autoplay = true;
+        audio.loop = true;
+        
+        // Optional: Add controls to the audio element
+        audio.controls = true; // This adds play, pause, and volume controls
+
+        // Append audio to the body
+        document.body.appendChild(audio);
+
+        // Optional: Play button for better user interaction
+        const playButton = document.createElement('button');
+        playButton.innerText = 'Play Music';
+        document.body.appendChild(playButton);
+
+        // Add event listener to play the audio on button click
+        playButton.addEventListener('click', () => {
+            audio.play();
+        });
+    </script>
+</html>

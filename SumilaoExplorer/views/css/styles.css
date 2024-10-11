@@ -1,0 +1,402 @@
+body, html {
+    height: 100%;
+    margin: 0;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background-color: #28a745; /* Green background */
+}
+
+/* Ensure the search container stays above the map */
+.search-container {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    background-color: #aef59d;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 1000;
+}
+
+/* Back button */
+.back-btn {
+    margin-right: 15px;
+    padding: 10px 15px;
+    background-color: #048d0b;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+}
+
+.back-btn:hover {
+    background-color: #048d0b;
+}
+
+/* Style the search input and button */
+.search-container input[type="text"] {
+    width: 300px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin-right: 10px;
+}
+
+.search-container button {
+    padding: 10px 20px;
+    background-color: #048d0b;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.search-container button:hover {
+    background-color: #048d0b;
+}
+
+/* Main page layout */
+.explore-page {
+    display: flex;
+    height: calc(100vh - 60px); /* Full screen height minus the search bar */
+    margin-top: 60px; /* Add margin to push down the content below the search bar */
+}
+
+#map {
+    height: 100%;
+    width: 50%; /* 50% of the screen */
+}
+
+#info-panel {
+    width: 50%; /* 50% of the screen */
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    background-color: #77dd77;
+    overflow-y: auto; /* Scrollable for overflow content */
+    position: relative;
+}
+
+#info-panel img {
+    width: 100%;
+    height: auto;
+    border-radius: 5px;
+}
+
+#info-panel h2 {
+    margin-top: 0;
+}
+
+#info-panel p {
+    color: #333;
+}
+
+/* Get Directions and More Info buttons */
+.directions-btn, .more-info-btn {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 10px 15px;
+    border-radius: 4px;
+    color: white;
+    text-decoration: none;
+}
+
+.directions-btn {
+    background-color: #048d0b;
+}
+
+.directions-btn:hover {
+    background-color: #048d0b;
+}
+
+.more-info-btn {
+    background-color: #048d0b; /* Blue color for more info button */
+    margin-left: 10px;
+}
+
+.more-info-btn:hover {
+    background-color: #048d0b;
+}
+
+/* Modal styling */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed;
+    z-index: 1001;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgba(0, 0, 0, 0.4); /* Black with opacity */
+}
+
+.modal-content {
+    background-color: #87e983;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%; /* Width of the modal */
+    max-width: 600px; /* Maximum width */
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* Carousel styles */
+.carousel {
+    display: flex;
+    overflow: hidden;
+    position: relative;
+    width: 100%; /* Optional: Set the width of the carousel container */
+}
+
+#carousel-container {
+    overflow: hidden; /* Hide overflow to show only part of the carousel */
+    width: 100%; /* Full width of the parent element */
+}
+
+#carousel-images {
+    display: flex; /* Arrange images in a row */
+    transition: transform 0.5s ease; /* Smooth transition for sliding effect */
+}
+
+.carousel-image {
+    width: 100%; /* Each image takes full width of the container */
+    flex: 0 0 auto; /* Prevent images from shrinking */
+}
+
+
+
+/* Walking around the page */
+@keyframes walkAround {
+    0% {
+        transform: translate(0, 0); /* Start at initial position */
+    }
+    25% {
+        transform: translate(-50px, 20px); /* Move slightly to the left and down */
+    }
+    50% {
+        transform: translate(50px, -20px); /* Move slightly to the right and up */
+    }
+    75% {
+        transform: translate(-50px, 40px); /* Move back slightly left and down */
+    }
+    100% {
+        transform: translate(0, 0); /* Return to initial position */
+    }
+}
+
+/* Apply the walking around animation to Walu */
+.walu-container {
+    position: absolute; /* Allow movement around the page */
+    display: inline-block;
+    animation: walkAround 5s linear infinite; /* Walk around the page */
+}
+
+#Walu {
+    width: 100px; /* Adjust size as needed */
+    transition: transform 0.2s ease;
+}
+
+
+/* Apply the walking around animation to Walu */
+.walu-container {
+    position: absolute; /* Allow movement around the page */
+    display: inline-block;
+    animation: walkAround 10s linear infinite; /* Walk around the page */
+}
+
+#Walu {
+    width: 100px; /* Adjust size as needed */
+    transition: transform 0.2s ease;
+}
+
+
+
+
+.speech-bubble {
+    display: none; /* Initially hidden */
+    position: absolute;
+    bottom: 120%; /* Position above Walu */
+    left: 50%;
+    transform: translateX(-50%);
+    background: white;
+    border: 1px solid #388e3c;
+    border-radius: 10px;
+    padding: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    z-index: 1;
+}
+
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px); /* Adjust floating height */
+    }
+}
+
+
+/* Your existing styles begin here */
+.landing-page {
+    position: relative;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    color: white;
+}
+
+.landing-page::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url('/SumilaoExplorer/assets/images/back.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0.80; /* Adjust opacity for 80% transparency */
+    z-index: 1;
+}
+
+.landing-page > * {
+    position: relative; /* Ensure text appears above the image */
+    z-index: 2;
+}
+
+h1 {
+    font-size: 4rem;
+    margin: 0;
+}
+
+p {
+    font-size: 1.5rem;
+}
+
+.explore-btn {
+    margin-top: 20px;
+    padding: 15px 30px;
+    background-color: #048d0b;
+    color: white;
+    font-size: 1.2rem;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.explore-btn:hover {
+    background-color: #27ae60;
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {
+        transform: translateY(0);
+    }
+    40% {
+        transform: translateY(-30px);
+    }
+    60% {
+        transform: translateY(-15px);
+    }
+}
+
+.interactive-walu {
+    position: absolute;
+    bottom: 10px; /* Adjust to desired position */
+    left: 0px;
+    width: 360px; /* Walu size */
+    height: 360px;
+    animation: bounce 3s infinite;
+}
+
+.interactive-walu:hover {
+    transform: scale(1.1);
+}
+
+/* Speech bubble positioned above Walu's head */
+.speech-bubble {
+    position: absolute;
+    display: none; /* Start hidden */
+    max-width: 200px; /* Limit the width */
+    padding: 10px; /* Add padding for better spacing */
+    background-color: rgb(253, 253, 253); /* Semi-transparent background */
+    color: rgb(46, 146, 25); /* Text color */
+    border-radius: 10px; /* Rounded corners */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Shadow effect */
+    font-family: 'Arial', sans-serif; /* Font family */
+    font-size: 14px; /* Font size */
+    text-align: center; /* Center text */
+    z-index: 1000; /* Ensure it's on top */
+    transition: opacity 0.3s ease; /* Smooth transition */
+    top: 150px; /* Adjust the top position to place the bubble above Walu */
+    left: 10%; /* Center the bubble horizontally */
+    transform: translateX(-50%); /* Adjust for center alignment */
+    min-height: 50px; /* Minimum height for the bubble */
+    height: auto; /* Auto height to adjust based on text */
+}
+
+
+/* Arrow pointing to Walu */
+.speech-bubble::after {
+    content: '';
+    position: absolute;
+    bottom: -8px; /* Position the arrow at the bottom of the bubble */
+    left: 50%; /* Center horizontally */
+    margin-left: -8px; /* Center the arrow */
+    border-width: 8px; /* Size of the arrow */
+    border-style: solid;
+    border-color: rgb(253, 253, 253) transparent transparent transparent; /* Arrow color matching the bubble */
+}
+
+.register-btn {
+    background-color: #FF5733;
+    color: white;
+    padding: 12px 24px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin-top: 20px;
+    border-radius: 8px;
+}
+
+.register-btn:hover {
+    background-color: #E74C3C;
+}
+
+
+/* Media query for responsiveness */
+@media only screen and (max-width: 768px) {
+    h1 {
+        font-size: 2rem;
+    }
+
+    p {
+        font-size: 1rem;
+    }
+
+    .interactive-walu {
+        width: 200px; /* Responsive size for smaller screens */
+        height: 200px;
+    }
+}

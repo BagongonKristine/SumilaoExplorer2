@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tourist Check-In</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+            padding: 50px;
+        }
+        #scanner-container {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        #scanner {
+            width: 100%;
+            height: 300px;
+        }
+        #result {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            color: green;
+        }
+        #error {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h2>Tourist Check-In</h2>
+    <div id="scanner-container">
+        <div id="scanner"></div>
+        <p id="result"></p>
+        <p id="error"></p>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js';
+        import { getFirestore, collection, query, where, getDocs, updateDoc, doc } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js';
+
+        // Firebase configuration
+        const firebaseConfig = {
+  apiKey: "AIzaSyDfOI2shBJqKGaKAewR-X6XNoOzPYP1lpA",
+  authDomain: "capstone-project-49ca8.firebaseapp.com",
+  projectId: "capstone-project-49ca8",
+  storageBucket: "capstone-project-49ca8.appspot.com",
+  messagingSenderId: "132663616309",
+  appId: "1:132663616309:web:f7f440409eefa5ac94a27c",
+  measurementId: "G-ECQBJXEB2V"
+};
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Function to handle scanning and retrieving tourist data
+        async function handleBarcode(barcodeValue) {
+            const touristsRef = collection(db, 'tourists');
+            const q = query(touristsRef, where('barcode', '==', barcodeValue));
+            const querySnapshot = await getDocs(q);
+
+            if (!querySnapshot.empty) {
+                const touristDoc = querySnapshot.docs[0];
+                const touristData = touristDoc.data();
+                document.getElementById('result').innerText = `Check-in successful! Welcome, ${touristData.name} to ${touristData.spot}!`;
+
+                // Update check-in time
+                await updateDoc(doc(db, 'tourists', touristDoc.id), {
+                    checkedInAt: new Date()
+                });
+            } else {
+                document.getElementById('error').innerText = 'Tourist not found or barcode is invalid!';
+            }
+        }
+
+        // Initialize QuaggaJS to scan barcodes
+        Quagga.init({
+            inputStream: {
+                name: "Live",
+                type: "LiveStream",
+                target: document.querySelector('#scanner')
+            },
+            decoder: {
+                readers: ['code_128_reader'] // The barcode format we are using
+            }
+        }, (err) => {
+            if (err) {
+                console.error(err);
+                document.getElementById('error').innerText = 'Error initializing scanner!';
+                return;
+            }
+            Quagga.start();
+        });
+
+        // Listen to barcode detection event
+        Quagga.onDetected(async (result) => {
+            const barcodeValue = result.codeResult.code;
+            console.log('Barcode detected:', barcodeValue);
+            await handleBarcode(barcodeValue);
+        });
+    </script>
+</body>
+</html>
